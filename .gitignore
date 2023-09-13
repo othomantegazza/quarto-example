@@ -1,6 +1,9 @@
 # output
 docs
 
+# intermediate files
+*_files
+
 # Mac stuff
 **.DS_Store
 
