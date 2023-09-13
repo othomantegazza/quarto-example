@@ -1,5 +1,5 @@
 ---
-title: "Unbalanced Rejection of Schengen Short Stay Visas"
+title: "Unbalanced Rejection Rates of Schengen Short Stay Visas"
 author: "[Otho Mantegazza](https://othomantegazza.com/)"
 date: today
 editor_options: 
