@@ -146,7 +146,7 @@ visa %>% glimpse()
 
 ## Aggregate by Consulate Country
 
-The consulate level is too detailed, let's try to visualize and then aggregate the data by country where the requesto was lodged:
+The consulate level is too detailed, let's try to visualize and then aggregate the data by country where the request was lodged:
 
 ```{r}
 country_rank <- 
