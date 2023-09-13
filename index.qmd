@@ -1,0 +1,247 @@
+---
+title: "Unbalanced Rejection of Schengen Short Stay Visas"
+author: "[Otho Mantegazza](https://othomantegazza.com/)"
+date: today
+editor_options: 
+  chunk_output_type: console
+---
+
+# Background
+
+This is an extract of [an analysis](https://blogs.lse.ac.uk/africaatlse/2023/06/22/europe-must-make-it-easier-for-africans-to-get-visas/) done by [Marta Foresti](https://uk.linkedin.com/in/marta-foresti-36255334) and me as part of the activity of the [LAGO Collective](https://www.lagocollective.org/) on how unfair and strict Schengen short stay visa policies might be hurting the development of the EU states, instead of protecting them.
+
+This is a very short exploration of the same data done for teaching purposes.
+
+# Introduction
+
+The Schengen area grants [short stay visas](https://home-affairs.ec.europa.eu/policies/schengen-borders-and-visa/visa-policy_en) for visitors staying no longer than 90 days. And releases detailed statistics on the acceptance rate by consulate in which the request was lodged. Can we detect hint of an unbalance in those data?
+
+# Analysis
+
+## Packages and Setup
+
+```{r}
+#| warning: false
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(countrycode)
+library(paletteer)
+
+theme_base <- 
+    theme(
+    plot.margin = margin(10,5,5,5),
+    axis.ticks = element_line(),
+    axis.line.y = element_line(),
+    legend.position = "top"
+  )
+
+a <- theme_set(
+  theme_minimal(
+    base_size = 12,
+  ) +
+    theme_base
+)
+```
+
+## Data
+
+2022 statistics are available at the website for [Home Affairs of the European Commission](https://home-affairs.ec.europa.eu/policies/schengen-borders-and-visa/visa-policy_en) in excel format.
+
+I've downloaded them manually and added them into the data folder.
+
+Let's read and clean them:
+
+```{r}
+data_path <- 'data/Visa statistics for consulates in 2022_en.xlsx'
+
+visa <-
+  read_excel(
+    data_path, 
+    sheet = 2
+  ) %>% 
+  clean_names() %>%  
+  select(
+    schengen_state,
+    consulate_country = country_where_consulate_is_located,
+    consulate_city = consulate,
+    issued = total_at_vs_and_uniform_visas_issued_including_multiple_at_vs_me_vs_and_lt_vs,
+    not_issued = total_at_vs_and_uniform_visas_not_issued
+  )
+```
+
+The visa dataset now looks like this:
+
+```{r}
+visa %>% glimpse()
+```
+
+## Missing Datas
+
+```{r}
+visa %>% 
+  summarise(
+    across(
+      .cols = everything(),
+      .fns = ~is.na(.) %>% sum()
+    )
+  ) %>% 
+  glimpse()
+```
+
+We can drop the observation with missing values in `consulate_country`, since they are not useful for this analysis.
+
+```{r}
+visa <- 
+  visa %>% 
+  drop_na(
+    consulate_country
+  )
+
+visa %>% 
+  summarise(
+    across(
+      .cols = everything(),
+      .fns = ~is.na(.) %>% sum()
+    )
+  ) %>% 
+  glimpse()
+```
+
+
+We can safely assume that the 'NA' in the column `issed` and `not_issued` are zeros instead. 
+
+```{r}
+visa <- 
+  visa %>% 
+  mutate(
+    issued = issued %>% replace_na(0),
+    not_issued = not_issued %>% replace_na(0)
+  )
+
+visa %>% 
+  summarise(
+    across(
+      .cols = everything(),
+      .fns = ~is.na(.) %>% sum()
+    )
+  ) %>% 
+  glimpse()
+```
+
+## Recompute Statistics from Data
+
+With the goal of visualization, we can recompute columns with totals and percentages of rejection.
+
+```{r}
+visa <- 
+  visa %>% 
+  mutate(tot_application = issued + not_issued,
+         rej_rate = not_issued/tot_application)
+
+visa %>% glimpse()
+```
+
+
+## Aggregate by Consulate Country
+
+The consulate level is too detailed, let's try to visualize and then aggregate the data by country where the requesto was lodged:
+
+```{r}
+country_rank <- 
+  visa %>% 
+  group_by(consulate_country) %>% 
+  summarise(
+    mean_rej_rate = weighted.mean(
+      x = rej_rate,
+      w = tot_application)
+  ) %>% 
+  arrange(mean_rej_rate) %>% 
+  pull(consulate_country)
+```
+
+
+```{r}
+#| fig-height: 20
+visa %>% 
+  filter(tot_application > 0) %>% 
+  ggplot() +
+  aes(x = rej_rate,
+      y = consulate_country %>% factor(levels = country_rank)) +
+  geom_point(
+    aes(size = tot_application),
+    shape = 21,
+    stroke = 1,
+    fill = '#FFFF0077'
+  ) +
+  scale_radius(
+    range = c(0, 5),
+    limits = c(1, NA)
+  ) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, .05))
+  )
+```
+
+## Aggregate by Continent
+
+Let's try to aggregate the countries by continent, to seek for patterns. We can infer the continent from the string `consulate_country` with functions from the package [countrycode](https://vincentarelbundock.github.io/countrycode/).
+
+```{r}
+visa <- 
+  visa %>% 
+  mutate(
+    continent = consulate_country %>% 
+      countrycode(
+        origin = 'country.name',
+        destination = 'continent'
+      )
+  )
+
+visa %>% 
+  glimpse()
+```
+
+And let's map the continent to the colour of the points.
+
+```{r}
+#| fig-height: 20
+visa %>% 
+  filter(tot_application > 0) %>% 
+  ggplot() +
+  aes(x = rej_rate,
+      y = consulate_country %>% factor(levels = country_rank),
+      colour = continent) +
+  geom_point(
+    aes(size = tot_application),
+    alpha = .9
+  ) +
+  scale_radius(
+    range = c(0, 5),
+    limits = c(1, NA)
+  ) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, .05))
+  ) +
+  scale_color_paletteer_d(
+    "awtools::mpalette"
+  )
+```
+
+```{r}
+#| fig-height: 10
+visa %>%
+  filter(tot_application > 0) %>% 
+  ggplot() +
+  aes(x = rej_rate,
+      weight = tot_application,
+      fill = continent) +
+  geom_histogram() +
+  geom_hline(yintercept = 0) +
+  facet_wrap(facets = 'continent',
+             ncol = 1) +
+  scale_fill_paletteer_d(
+    "awtools::mpalette"
+  )
+```
+
