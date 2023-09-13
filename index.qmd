@@ -33,7 +33,8 @@ theme_base <-
     plot.margin = margin(10,5,5,5),
     axis.ticks = element_line(),
     axis.line.y = element_line(),
-    legend.position = "top"
+    legend.position = "top",
+    legend.box = "vertical"
   )
 
 a <- theme_set(
@@ -174,12 +175,16 @@ visa %>%
     stroke = 1,
     fill = '#FFFF0077'
   ) +
+  labs(title = 'Short Stay Visa Rejection Rate',
+       x = 'Rejection rate [%]',
+       y = 'Country where the application was lodged') +
   scale_radius(
     range = c(0, 5),
     limits = c(1, NA)
   ) +
   scale_x_continuous(
-    expand = expansion(mult = c(0, .05))
+    expand = expansion(mult = c(0, .05)),
+    labels = scales::percent
   )
 ```
 
@@ -216,12 +221,16 @@ visa %>%
     aes(size = tot_application),
     alpha = .9
   ) +
+  labs(title = 'Short Stay Visa Rejection Rate',
+       x = 'Rejection rate [%]',
+       y = 'Country where the application was lodged') +
   scale_radius(
     range = c(0, 5),
     limits = c(1, NA)
   ) +
   scale_x_continuous(
-    expand = expansion(mult = c(0, .05))
+    expand = expansion(mult = c(0, .05)),
+    label = scales::percent
   ) +
   scale_color_paletteer_d(
     "awtools::mpalette"
@@ -240,8 +249,15 @@ visa %>%
   geom_hline(yintercept = 0) +
   facet_wrap(facets = 'continent',
              ncol = 1) +
+  labs(title = 'Short Stay Visa Rejection Rate',
+       x = 'Rejection rate [%]',
+       y = 'Application Lodged [n]') +
   scale_fill_paletteer_d(
     "awtools::mpalette"
+  ) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, .05)),
+    label = scales::percent
   )
 ```
 
