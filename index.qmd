@@ -77,7 +77,7 @@ The visa dataset now looks like this:
 visa %>% glimpse()
 ```
 
-## Missing Datas
+## Missing Data
 
 ```{r}
 visa %>% 
@@ -261,3 +261,9 @@ visa %>%
   )
 ```
 
+
+# Conclusions
+
+Countries in the African continent face an unexpectedly high rejection rates for Schengen short stay visa applications.
+
+This explorative analysis does not in any way explore the causes of this patterns, but highlights a potential problem that from here on can be described and studied more deeply.
