@@ -6,7 +6,10 @@ editor_options:
   chunk_output_type: console
 ---
 
+
 # Background
+
+![](img/e-passport.jpg)
 
 This is an extract of [an analysis](https://blogs.lse.ac.uk/africaatlse/2023/06/22/europe-must-make-it-easier-for-africans-to-get-visas/) done by [Marta Foresti](https://uk.linkedin.com/in/marta-foresti-36255334) and me as part of the activity of the [LAGO Collective](https://www.lagocollective.org/) on how unfair and strict Schengen short stay visa policies might be hurting the development of the EU states, instead of protecting them.
 
