@@ -1,5 +1,5 @@
 project:
-  title: "My Quarto Starter Pack"
+  title: "A Quarto Example"
   preview:
     port: 4200
   output-dir: docs
